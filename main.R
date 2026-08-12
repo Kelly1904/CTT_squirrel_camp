@@ -1,9 +1,11 @@
 library(renv)
 library(celltracktech)
+library(dplyr)
+library(mapview)
 
-
-renv::activate()
-renv::snapshot()
+#webshot::install_phantomjs()
+#renv::activate()
+#renv::snapshot()
 #renv::install('cellular-tracking-technologies/celltracktech')
 
 
@@ -15,7 +17,7 @@ load_dot_env(file='.env')
 my_token <- Sys.getenv('API_KEY') 
 
 # Where your downloaded files are to go
-outpath <- "data/Thompson Rivers University/nodes/" 
+outpath <- "data/nodes/" 
 
 # This is your project name on your CTT account
 myproject <- "Thompson Rivers University" 
@@ -24,7 +26,7 @@ myproject <- "Thompson Rivers University"
 options(digits = 10) 
 
 # Specify the path to your database file
-database_file <- "./data/squirrel.duckdb"
+database_file <- "data/squirrel.duckdb"
 
 # Specify the tag ID that you used in your calibration
 my_tag_id <- "6133334B"
@@ -34,7 +36,7 @@ my_tag_id <- "6133334B"
 #   a constant location.  All node health records in this time window
 #   will be used to accurately determine the position of your nodes
 start_time <- as.POSIXct("2026-08-08 00:00:00", tz = "GMT")
-stop_time <- as.POSIXct("2026-08-11 23:59:59", tz = "GMT")
+stop_time <- as.POSIXct("2026-08-12 18:00:00", tz = "GMT")
 
 # Map tile URL
 my_tile_url <- "https://mt2.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
@@ -76,7 +78,7 @@ get_my_data(my_token = my_token,
             db_name = con, 
             myproject = myproject,
             begin = as.Date("2026-08-01"), 
-            end = as.Date("2026-08-11"), #Modify this to get new data
+            end = as.Date("2026-08-13"), #Modify this to get new data
             filetypes=c("raw", "blu", "gps", "node_health", "sensorgnome", "telemetry", 'log')
 )
 
@@ -147,7 +149,20 @@ detection_df <- subset.data.frame(detection_df,
 
 #### Load Sidekick calibration data ####
 # Get Sidekick data from CSV
-sidekick_all_df <- load_sidekick_data("sidekick/ctt_sidekick_AD3F4335_20260810223835.csv")
+sidekick_files <- list.files("data/sidekick")
+sidekick_all_df <- c()
+for (file in sidekick_files) {
+  sidekick_df <- load_sidekick_data(paste0("data/sidekick/", file))
+  sidekick_all_df <- rbind(sidekick_all_df, sidekick_df)
+}
+
+# Remove odd positions 
+summary(sidekick_all_df$lat)
+summary(sidekick_all_df$lon)
+sidekick_all_df <- sidekick_all_df[sidekick_all_df$lat> 60.85 
+                                   & sidekick_all_df$lat< 61.05 
+                                   & sidekick_all_df$lon< -137.9 
+                                   & sidekick_all_df$lon> -138.1, ] # Adjust to suit your needs
 
 # Get beeps from test tag only
 sidekick_tag_df <- subset.data.frame(sidekick_all_df, 
@@ -159,6 +174,8 @@ calibration_map <- map_calibration_track(node_locs,
                                          tile_url = my_tile_url)
 
 calibration_map
+mapshot(calibration_map, 
+        file = "results/calibration_map.png")
 
 
 #### Calculate the RSSI vs. Distance Relationship ####
