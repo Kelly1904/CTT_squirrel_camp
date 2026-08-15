@@ -2,6 +2,7 @@ library(renv)
 library(celltracktech)
 library(dplyr)
 library(mapview)
+library(ggplot2)
 
 #webshot::install_phantomjs()
 #renv::activate()
@@ -36,7 +37,7 @@ my_tag_id <- "6133334B"
 #   a constant location.  All node health records in this time window
 #   will be used to accurately determine the position of your nodes
 start_time <- as.POSIXct("2026-08-08 00:00:00", tz = "GMT")
-stop_time <- as.POSIXct("2026-08-12 18:00:00", tz = "GMT")
+stop_time <- as.POSIXct("2026-08-15 18:00:00", tz = "GMT")
 
 # Map tile URL
 my_tile_url <- "https://mt2.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
@@ -67,23 +68,23 @@ my_tile_url <- "https://mt2.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
 #           .keep_all = TRUE)
 
 
-#### Download data from the CTT API ####
+#### Download data from the CTT API #### -> only do if you want to update the database with new data
 # Connect to Database using DuckDB
-con <- DBI::dbConnect(duckdb::duckdb(), 
-                      dbdir = "data/squirrel.duckdb", 
-                      read_only = FALSE)
+#con <- DBI::dbConnect(duckdb::duckdb(), 
+#                      dbdir = "data/squirrel.duckdb", 
+#                      read_only = FALSE)
 
-get_my_data(my_token = my_token,
-            outpath = outpath, 
-            db_name = con, 
-            myproject = myproject,
-            begin = as.Date("2026-08-01"), 
-            end = as.Date("2026-08-13"), #Modify this to get new data
-            filetypes=c("raw", "blu", "gps", "node_health", "sensorgnome", "telemetry", 'log')
-)
+#get_my_data(my_token = my_token,
+#            outpath = outpath, 
+#            db_name = con, 
+#            myproject = myproject,
+#            begin = as.Date("2026-08-01"), 
+#            end = as.Date("2026-08-15"), #Modify this to get new data
+#            filetypes=c("raw", "blu", "gps", "node_health", "sensorgnome", "telemetry", 'log')
+#)
 
-update_db(con, outpath, myproject)
-DBI::dbDisconnect(con)
+#update_db(con, outpath, myproject)
+#DBI::dbDisconnect(con)
 
 #### Get node locations ####
 con <- DBI::dbConnect(duckdb::duckdb(), 
@@ -114,8 +115,6 @@ node_loc_plot <- plot_node_locations(node_health_df,
 node_loc_plot
 
 # Write the node locations to a file
-create_outpath('results')
-
 export_node_locations("results/node_locations.csv", 
                       node_locs)
 
@@ -125,7 +124,7 @@ node_map <- map_node_locations(node_locs,
 node_map
 
 
-#### Load node detections from files
+#### Load node detections from files ####
 con <- DBI::dbConnect(duckdb::duckdb(), 
                       dbdir = database_file, 
                       read_only = TRUE)
@@ -175,7 +174,7 @@ calibration_map <- map_calibration_track(node_locs,
 
 calibration_map
 mapshot(calibration_map, 
-        file = "results/calibration_map.png")
+        file = "results/calibration_map_434.png")
 
 
 #### Calculate the RSSI vs. Distance Relationship ####
@@ -193,7 +192,6 @@ rssi_v_dist <- calc_rssi_v_dist(node_locs = node_locs,
                                 use_sync = FALSE) #For Blu Series tags use_sync=TRUE, for 434 MHz tags use_sync=FALSE.
 
 # Plot the resulting RSSI and distance data
-library(ggplot2)
 ggplot() +
   geom_point(data = rssi_v_dist, 
              aes(x = distance, 
