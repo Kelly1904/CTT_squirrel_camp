@@ -185,7 +185,7 @@ detection_df$node_id[detection_df$node_id == "4BBDF57"] <- "04BBDF57"
 detection_df<- detection_df |> 
   filter(node_id %in% node_locs$node_id)
 
-
+# Calculate the RSSI & distance for each detection
 rssi_v_dist <- calc_rssi_v_dist(node_locs = node_locs, 
                                 sidekick_tag_df = sidekick_tag_df, 
                                 detection_df = detection_df, 

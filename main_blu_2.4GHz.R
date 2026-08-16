@@ -180,13 +180,15 @@ mapshot(calibration_map,
 #### Calculate the RSSI vs. Distance Relationship ####
 # Correct the name of the 04BBDF57 station in the detection df
 detection_blu$node_id[detection_blu$node_id == "4BBDF57"] <- "04BBDF57" 
+
+# Correct the name of the Sync column, so we can calculate the RSSI vs dist
 names(detection_blu)[names(detection_blu) == "sync"] <- "Sync"
 
 # Filter the detection df so it only contains nodes that have a location
 detection_blu<- detection_blu |> 
   filter(node_id %in% node_locs$node_id)
 
-
+# Calculate the RSSI & distance for each detection
 rssi_v_dist <- calc_rssi_v_dist(node_locs = node_locs, 
                                 sidekick_tag_df = sidekick_tag_df, 
                                 detection_df = detection_blu, 
