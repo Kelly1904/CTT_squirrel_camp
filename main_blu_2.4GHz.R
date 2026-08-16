@@ -180,6 +180,7 @@ mapshot(calibration_map,
 #### Calculate the RSSI vs. Distance Relationship ####
 # Correct the name of the 04BBDF57 station in the detection df
 detection_blu$node_id[detection_blu$node_id == "4BBDF57"] <- "04BBDF57" 
+names(detection_blu)[names(detection_blu) == "sync"] <- "Sync"
 
 # Filter the detection df so it only contains nodes that have a location
 detection_blu<- detection_blu |> 
