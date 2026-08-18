@@ -78,8 +78,8 @@ my_tile_url <- "https://mt2.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
 #            outpath = outpath, 
 #            db_name = con, 
 #            myproject = myproject,
-#            begin = as.Date("2026-08-01"), 
-#            end = as.Date("2026-08-15"), #Modify this to get new data
+#            begin = as.Date("2026-08-15"), 
+#            end = as.Date("2026-08-17"), #Modify this to get new data
 #            filetypes=c("raw", "blu", "gps", "node_health", "sensorgnome", "telemetry", 'log')
 #)
 
